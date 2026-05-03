@@ -1,0 +1,45 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  type      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  prompts   Prompt[]
+}
+
+model Prompt {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  content     String
+  images      String[]
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tags        String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([categoryId])
+}
+
+model Article {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  content    String
+  excerpt    String?
+  coverImage String?
+  published  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
