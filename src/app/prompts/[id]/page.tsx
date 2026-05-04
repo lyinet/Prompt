@@ -28,6 +28,9 @@ export default async function PromptDetailPage({
   const images = Array.isArray(prompt.images)
     ? (prompt.images as string[])
     : [];
+  const models = Array.isArray(prompt.models)
+    ? (prompt.models as string[])
+    : [];
 
   return (
     <main className="min-h-screen bg-ivory-100">
@@ -98,6 +101,27 @@ export default async function PromptDetailPage({
             </pre>
           </div>
         </section>
+
+        {/* Models */}
+        {models.length > 0 && (
+          <section className="mt-14">
+            <p className="mb-4 text-xs uppercase tracking-[0.22em] text-ink-500">
+              Recommended Models
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {models.map((m, i) => (
+                <Link
+                  key={i}
+                  href={`/prompts?model=${encodeURIComponent(m)}`}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-clay-200 bg-clay-50 px-3 py-1 text-sm font-medium text-clay-700 transition-colors hover:bg-clay-100"
+                >
+                  <span className="h-1 w-1 rounded-full bg-clay-600" />
+                  {m}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Images */}
         {images.length > 0 && (

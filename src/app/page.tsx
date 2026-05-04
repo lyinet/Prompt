@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 
 const categories = [
@@ -28,7 +29,75 @@ const categories = [
   },
 ];
 
-export default function Home() {
+type CloudEntry = { name: string; count: number };
+
+async function getCloudData(): Promise<{
+  tags: CloudEntry[];
+  models: CloudEntry[];
+}> {
+  const rows = await prisma.prompt.findMany({
+    select: { tags: true, models: true },
+  });
+
+  const tagCounts = new Map<string, number>();
+  const modelCounts = new Map<string, number>();
+
+  for (const row of rows) {
+    if (Array.isArray(row.tags)) {
+      for (const t of row.tags) {
+        if (typeof t !== "string") continue;
+        const k = t.trim();
+        if (!k) continue;
+        tagCounts.set(k, (tagCounts.get(k) ?? 0) + 1);
+      }
+    }
+    if (Array.isArray(row.models)) {
+      for (const m of row.models) {
+        if (typeof m !== "string") continue;
+        const k = m.trim();
+        if (!k) continue;
+        modelCounts.set(k, (modelCounts.get(k) ?? 0) + 1);
+      }
+    }
+  }
+
+  const toEntries = (m: Map<string, number>, limit: number): CloudEntry[] =>
+    Array.from(m.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+      .slice(0, limit);
+
+  return {
+    tags: toEntries(tagCounts, 60),
+    models: toEntries(modelCounts, 30),
+  };
+}
+
+// Map a count to a Tailwind text-size class based on its rank within the cloud.
+function sizeClass(count: number, max: number): string {
+  if (max === 0) return "text-base";
+  const r = count / max;
+  if (r >= 0.85) return "text-3xl md:text-4xl";
+  if (r >= 0.6) return "text-2xl md:text-3xl";
+  if (r >= 0.4) return "text-xl md:text-2xl";
+  if (r >= 0.2) return "text-lg md:text-xl";
+  if (r >= 0.1) return "text-base";
+  return "text-sm";
+}
+
+function weightClass(count: number, max: number): string {
+  if (max === 0) return "text-ink-500";
+  const r = count / max;
+  if (r >= 0.6) return "text-ink-900";
+  if (r >= 0.3) return "text-ink-700";
+  return "text-ink-500";
+}
+
+export default async function Home() {
+  const { tags, models } = await getCloudData();
+  const tagMax = tags[0]?.count ?? 0;
+  const modelMax = models[0]?.count ?? 0;
+
   return (
     <main className="min-h-screen bg-ivory-100">
       <SiteHeader />
@@ -38,7 +107,7 @@ export default function Home() {
         <div className="mx-auto max-w-6xl px-6 pb-24 pt-20 md:pt-28">
           <p className="mb-8 inline-flex items-center gap-2 rounded-full border border-ivory-300 bg-ivory-50 px-3 py-1 text-xs uppercase tracking-[0.18em] text-ink-500">
             <span className="h-1.5 w-1.5 rounded-full bg-clay-600" />
-            Prompt Library · v0.1
+            Prompt Library · v0.2
           </p>
 
           <h1 className="font-serif text-[44px] leading-[1.05] tracking-editorial text-ink-900 md:text-[68px] md:leading-[1.02]">
@@ -142,6 +211,88 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* Tag & Model clouds */}
+      {(tags.length > 0 || models.length > 0) && (
+        <section className="mx-auto max-w-6xl px-6 pb-20">
+          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-card border border-ivory-300 bg-ivory-300 md:grid-cols-2">
+            {/* Tag cloud */}
+            <div className="flex flex-col bg-ivory-50 p-8 md:p-10">
+              <div className="mb-6 flex items-baseline justify-between gap-4">
+                <p className="text-xs uppercase tracking-[0.22em] text-ink-500">
+                  Tag cloud
+                </p>
+                <span className="font-mono text-[11px] text-ink-400">
+                  {tags.length} 个标签
+                </span>
+              </div>
+              <h3 className="mb-6 font-serif text-2xl tracking-editorial text-ink-900">
+                按主题游走
+              </h3>
+              {tags.length > 0 ? (
+                <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+                  {tags.map((t) => (
+                    <Link
+                      key={t.name}
+                      href={`/prompts?tag=${encodeURIComponent(t.name)}`}
+                      className={`font-serif tracking-tightish transition-colors hover:text-clay-700 ${sizeClass(
+                        t.count,
+                        tagMax,
+                      )} ${weightClass(t.count, tagMax)}`}
+                      title={`${t.count} 条`}
+                    >
+                      <span className="text-clay-600/70">#</span>
+                      {t.name}
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-ink-500">还没有任何标签。</p>
+              )}
+            </div>
+
+            {/* Model cloud */}
+            <div className="flex flex-col bg-ivory-50 p-8 md:p-10">
+              <div className="mb-6 flex items-baseline justify-between gap-4">
+                <p className="text-xs uppercase tracking-[0.22em] text-ink-500">
+                  Model cloud
+                </p>
+                <span className="font-mono text-[11px] text-ink-400">
+                  {models.length} 个模型
+                </span>
+              </div>
+              <h3 className="mb-6 font-serif text-2xl tracking-editorial text-ink-900">
+                按模型寻路
+              </h3>
+              {models.length > 0 ? (
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+                  {models.map((m) => (
+                    <Link
+                      key={m.name}
+                      href={`/prompts?model=${encodeURIComponent(m.name)}`}
+                      className={`inline-flex items-baseline gap-1.5 rounded-full border border-clay-200/70 bg-clay-50/50 px-3 py-1 transition-colors hover:border-clay-600 hover:bg-clay-50 ${sizeClass(
+                        m.count,
+                        modelMax,
+                      )} text-clay-700`}
+                      title={`${m.count} 条`}
+                    >
+                      <span className="h-1 w-1 rounded-full bg-clay-600" />
+                      <span className="font-medium">{m.name}</span>
+                      <span className="font-mono text-[10px] text-clay-700/60">
+                        {m.count}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-ink-500">
+                  还没有任何模型记录。在新建提示词时填入「适用模型」即可。
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Manifesto block — editorial pull quote */}
       <section className="mx-auto max-w-6xl px-6 pb-24">

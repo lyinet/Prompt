@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ModelPicker } from '@/components/model-picker';
+import { suggestionsFor } from '@/lib/model-suggestions';
 
 interface Category {
   id: string;
@@ -23,6 +25,7 @@ export default function NewPromptPage() {
     categoryId: '',
     tags: '',
     images: [] as string[],
+    models: [] as string[],
   });
 
   useEffect(() => {
@@ -30,6 +33,15 @@ export default function NewPromptPage() {
       .then((res) => res.json())
       .then((data) => setCategories(data));
   }, []);
+
+  const selectedType = useMemo(
+    () => categories.find((c) => c.id === formData.categoryId)?.type,
+    [categories, formData.categoryId],
+  );
+  const modelSuggestions = useMemo(
+    () => suggestionsFor(selectedType),
+    [selectedType],
+  );
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,6 +87,7 @@ export default function NewPromptPage() {
             .split(',')
             .map((t) => t.trim())
             .filter(Boolean),
+          models: formData.models,
         }),
       });
 
@@ -213,8 +226,20 @@ export default function NewPromptPage() {
           </div>
 
           <Field
-            label="参考图片"
+            label="适用模型"
             eyebrow="06"
+            hint="可多选。先选分类，建议会随媒介变化。"
+          >
+            <ModelPicker
+              value={formData.models}
+              suggestions={modelSuggestions}
+              onChange={(next) => setFormData({ ...formData, models: next })}
+            />
+          </Field>
+
+          <Field
+            label="参考图片"
+            eyebrow="07"
             hint="可选 —— 可以为图片类提示词附上效果示例。"
           >
             <label
