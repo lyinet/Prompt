@@ -1,5 +1,12 @@
-import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
+
+const TYPE_LABEL: Record<string, string> = {
+  text: "文字 · Text",
+  image: "图片 · Image",
+  video: "视频 · Video",
+};
 
 export default async function PromptsPage({
   searchParams,
@@ -13,93 +20,138 @@ export default async function PromptsPage({
       ...(params.category && { categoryId: params.category }),
     },
     include: { category: true },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
   });
 
+  const activeType = params.type;
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-semibold text-gray-900 hover:text-gray-700 transition-colors">
-            AI Prompt Manager
-          </Link>
-          <Link
-            href="/admin"
-            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            管理后台
-          </Link>
-        </div>
-      </header>
+    <main className="min-h-screen bg-ivory-100">
+      <SiteHeader />
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="mb-10">
-          <h1 className="text-4xl font-semibold text-gray-900 mb-4">提示词库</h1>
-          <p className="text-lg text-gray-600">浏览和使用精选的 AI 提示词模板</p>
-        </div>
+      <section className="mx-auto max-w-6xl px-6 pb-10 pt-16 md:pt-20">
+        <p className="text-xs uppercase tracking-[0.22em] text-ink-500">
+          The Library
+        </p>
+        <h1 className="mt-4 font-serif text-4xl leading-tight tracking-editorial text-ink-900 md:text-5xl">
+          提示词库
+        </h1>
+        <p className="mt-5 max-w-2xl text-lg text-ink-700">
+          一份持续生长的提示词目录 —— 你可以按媒介筛选，或直接打开任意一条仔细阅读。
+        </p>
 
-        {/* Prompts Grid */}
+        {/* Filter tabs */}
+        <div className="mt-10 flex flex-wrap items-center gap-2">
+          <FilterChip href="/prompts" label="全部" active={!activeType} />
+          <FilterChip
+            href="/prompts?type=text"
+            label="文字"
+            active={activeType === "text"}
+          />
+          <FilterChip
+            href="/prompts?type=image"
+            label="图片"
+            active={activeType === "image"}
+          />
+          <FilterChip
+            href="/prompts?type=video"
+            label="视频"
+            active={activeType === "video"}
+          />
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 pb-24">
         {prompts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {prompts.map((prompt) => (
-              <Link key={prompt.id} href={`/prompts/${prompt.id}`} className="group">
-                <div className="border border-gray-200 rounded-xl p-6 hover:border-gray-300 hover:shadow-sm transition-all h-full flex flex-col">
-                  <div className="flex items-start justify-between mb-4">
-                    <span className="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
-                      {prompt.category.name}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {prompts.map((prompt) => {
+              const tags = Array.isArray(prompt.tags)
+                ? (prompt.tags as string[])
+                : [];
+              return (
+                <Link
+                  key={prompt.id}
+                  href={`/prompts/${prompt.id}`}
+                  className="group flex flex-col rounded-card border border-ivory-300 bg-ivory-50 p-7 transition-all hover:border-ivory-400 hover:bg-white"
+                >
+                  <div className="mb-5 flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-clay-50 px-2.5 py-1 text-xs font-medium text-clay-700">
+                      <span className="h-1 w-1 rounded-full bg-clay-600" />
+                      {TYPE_LABEL[prompt.category.type] ?? prompt.category.name}
+                    </span>
+                    <span className="text-[11px] uppercase tracking-[0.18em] text-ink-400">
+                      {new Date(prompt.createdAt).toLocaleDateString("zh-CN", {
+                        month: "short",
+                        day: "numeric",
+                      })}
                     </span>
                   </div>
 
-                  <h2 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-[#CC785C] transition-colors">
+                  <h2 className="font-serif text-2xl leading-snug tracking-editorial text-ink-900 transition-colors group-hover:text-clay-700">
                     {prompt.title}
                   </h2>
 
                   {prompt.description && (
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-grow">
+                    <p className="mt-3 line-clamp-3 flex-1 text-sm leading-relaxed text-ink-600">
                       {prompt.description}
                     </p>
                   )}
 
-                  {Array.isArray(prompt.tags) && prompt.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-gray-100">
-                      {(prompt.tags as string[]).slice(0, 3).map((tag, i) => (
-                        <span key={i} className="text-xs text-gray-500">
-                          #{tag}
-                        </span>
+                  {tags.length > 0 && (
+                    <div className="mt-6 flex flex-wrap gap-x-3 gap-y-1 border-t border-ivory-300 pt-4 text-xs text-ink-500">
+                      {tags.slice(0, 4).map((tag, i) => (
+                        <span key={i}>#{tag}</span>
                       ))}
-                      {(prompt.tags as string[]).length > 3 && (
-                        <span className="text-xs text-gray-400">
-                          +{(prompt.tags as string[]).length - 3}
+                      {tags.length > 4 && (
+                        <span className="text-ink-400">
+                          +{tags.length - 4}
                         </span>
                       )}
                     </div>
                   )}
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         ) : (
-          <div className="text-center py-20">
-            <div className="max-w-md mx-auto">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">暂无提示词</h3>
-              <p className="text-gray-600 mb-8">开始创建你的第一个提示词模板</p>
-              <Link
-                href="/admin/prompts/new"
-                className="inline-flex items-center px-6 py-3 bg-[#CC785C] text-white font-medium rounded-lg hover:bg-[#B86A4F] transition-colors"
-              >
-                创建提示词
-              </Link>
-            </div>
+          <div className="mx-auto max-w-md rounded-card border border-dashed border-ivory-400 bg-ivory-50 px-8 py-20 text-center">
+            <p className="font-serif text-3xl tracking-editorial text-ink-800">
+              空白页
+            </p>
+            <p className="mt-3 text-sm text-ink-600">
+              这里还没有任何提示词。要不要写下第一条？
+            </p>
+            <Link href="/admin/prompts/new" className="btn-primary mt-8">
+              创建第一个提示词
+            </Link>
           </div>
         )}
-      </div>
-    </div>
+      </section>
+
+      <SiteFooter />
+    </main>
+  );
+}
+
+function FilterChip({
+  href,
+  label,
+  active,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={
+        active
+          ? "rounded-full border border-ink-900 bg-ink-900 px-4 py-1.5 text-sm text-ivory-50"
+          : "rounded-full border border-ivory-300 bg-ivory-50 px-4 py-1.5 text-sm text-ink-700 transition-colors hover:border-ink-700 hover:bg-white"
+      }
+    >
+      {label}
+    </Link>
   );
 }

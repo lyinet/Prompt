@@ -1,124 +1,164 @@
-import Link from 'next/link';
+import Link from "next/link";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
+
+const categories = [
+  {
+    type: "text",
+    label: "Text",
+    title: "文字提示词",
+    description:
+      "为 ChatGPT、Claude 等对话式模型精心打磨的指令模板，覆盖写作、分析、推理与代理工作流。",
+    eyebrow: "01 — Conversation",
+  },
+  {
+    type: "image",
+    label: "Image",
+    title: "图片提示词",
+    description:
+      "面向 Midjourney、DALL·E、Stable Diffusion 的视觉描述语言，强调风格、构图与光影的精确控制。",
+    eyebrow: "02 — Vision",
+  },
+  {
+    type: "video",
+    label: "Video",
+    title: "视频提示词",
+    description:
+      "为 Sora、Runway、Pika 等模型设计的镜头语言与时序描述，捕捉运动、节奏与叙事张力。",
+    eyebrow: "03 — Motion",
+  },
+];
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="text-xl font-semibold text-gray-900">AI Prompt Manager</div>
-          <Link
-            href="/admin"
-            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            管理后台
-          </Link>
-        </div>
-      </header>
+    <main className="min-h-screen bg-ivory-100">
+      <SiteHeader />
 
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-6 pt-20 pb-16">
-        <div className="max-w-3xl">
-          <h1 className="text-5xl md:text-6xl font-semibold text-gray-900 mb-6 leading-tight text-balance">
-            收集、管理和分享
-            <br />
-            优质的 AI 提示词
-          </h1>
-          <p className="text-xl text-gray-600 mb-10 leading-relaxed">
-            构建你的专属提示词库，让每一次 AI 对话都更加高效和精准
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="mx-auto max-w-6xl px-6 pb-24 pt-20 md:pt-28">
+          <p className="mb-8 inline-flex items-center gap-2 rounded-full border border-ivory-300 bg-ivory-50 px-3 py-1 text-xs uppercase tracking-[0.18em] text-ink-500">
+            <span className="h-1.5 w-1.5 rounded-full bg-clay-600" />
+            Prompt Library · v0.1
           </p>
-          <div className="flex gap-4">
-            <Link
-              href="/prompts"
-              className="inline-flex items-center px-6 py-3 bg-[#CC785C] text-white font-medium rounded-lg hover:bg-[#B86A4F] transition-colors"
-            >
-              浏览提示词
-              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+
+          <h1 className="font-serif text-[44px] leading-[1.05] tracking-editorial text-ink-900 md:text-[68px] md:leading-[1.02]">
+            收集、管理与分享
+            <br />
+            <span className="italic text-clay-700">优质的 AI 提示词。</span>
+          </h1>
+
+          <p className="mt-8 max-w-2xl text-lg leading-relaxed text-ink-700 md:text-xl">
+            一个为创作者打造的提示词工作台 —— 让每一段写给模型的话语，都像一份认真撰写的稿件，可以被复用、被重读、被传递。
+          </p>
+
+          <div className="mt-12 flex flex-wrap items-center gap-3">
+            <Link href="/prompts" className="btn-primary">
+              浏览提示词库
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 8l4 4m0 0l-4 4m4-4H3"
+                />
               </svg>
             </Link>
-            <Link
-              href="/admin/prompts/new"
-              className="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors"
-            >
-              创建提示词
+            <Link href="/admin/prompts/new" className="btn-secondary">
+              创建新的提示词
             </Link>
           </div>
+
+          {/* Subtle corner ornament — Anthropic-style serif ‘&’ */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute right-2 top-10 hidden select-none font-serif text-[200px] leading-none text-clay-100 md:block"
+          >
+            &amp;
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="divider-dotted" />
         </div>
       </section>
 
-      {/* Categories Section */}
-      <section className="max-w-7xl mx-auto px-6 py-16">
-        <h2 className="text-3xl font-semibold text-gray-900 mb-10">按类型浏览</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Link href="/prompts?type=text" className="group">
-            <div className="border border-gray-200 rounded-xl p-8 hover:border-gray-300 hover:shadow-sm transition-all">
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-6 group-hover:bg-gray-200 transition-colors">
-                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">文字提示词</h3>
-              <p className="text-gray-600 leading-relaxed mb-4">
-                适用于 ChatGPT、Claude 等对话式 AI 的提示词模板
-              </p>
-              <div className="text-[#CC785C] font-medium flex items-center">
-                查看更多
-                <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
+      {/* Categories */}
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="mb-12 flex items-end justify-between gap-6">
+          <div>
+            <p className="mb-3 text-xs uppercase tracking-[0.22em] text-ink-500">
+              Browse by medium
+            </p>
+            <h2 className="font-serif text-3xl tracking-editorial text-ink-900 md:text-4xl">
+              按媒介浏览
+            </h2>
+          </div>
+          <Link
+            href="/prompts"
+            className="hidden text-sm text-ink-600 transition-colors hover:text-clay-700 md:inline-flex"
+          >
+            查看全部 →
           </Link>
+        </div>
 
-          <Link href="/prompts?type=image" className="group">
-            <div className="border border-gray-200 rounded-xl p-8 hover:border-gray-300 hover:shadow-sm transition-all">
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-6 group-hover:bg-gray-200 transition-colors">
-                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">图片提示词</h3>
-              <p className="text-gray-600 leading-relaxed mb-4">
-                适用于 Midjourney、DALL-E 等图像生成 AI 的提示词
+        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-card border border-ivory-300 bg-ivory-300 md:grid-cols-3">
+          {categories.map((cat) => (
+            <Link
+              key={cat.type}
+              href={`/prompts?type=${cat.type}`}
+              className="group relative flex flex-col bg-ivory-50 p-8 transition-colors hover:bg-white"
+            >
+              <p className="text-xs uppercase tracking-[0.2em] text-ink-400">
+                {cat.eyebrow}
               </p>
-              <div className="text-[#CC785C] font-medium flex items-center">
-                查看更多
-                <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/prompts?type=video" className="group">
-            <div className="border border-gray-200 rounded-xl p-8 hover:border-gray-300 hover:shadow-sm transition-all">
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-6 group-hover:bg-gray-200 transition-colors">
-                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">视频提示词</h3>
-              <p className="text-gray-600 leading-relaxed mb-4">
-                适用于 Sora、Runway 等视频生成 AI 的提示词模板
+              <h3 className="mt-6 font-serif text-2xl tracking-editorial text-ink-900">
+                {cat.title}
+              </h3>
+              <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-600">
+                {cat.description}
               </p>
-              <div className="text-[#CC785C] font-medium flex items-center">
-                查看更多
-                <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <div className="mt-8 flex items-center gap-2 text-sm font-medium text-clay-700">
+                浏览 {cat.label}
+                <svg
+                  className="h-4 w-4 transition-transform group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </div>
-            </div>
-          </Link>
+            </Link>
+          ))}
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 mt-20">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <p className="text-sm text-gray-500">© 2026 AI Prompt Manager. All rights reserved.</p>
+      {/* Manifesto block — editorial pull quote */}
+      <section className="mx-auto max-w-6xl px-6 pb-24">
+        <div className="rounded-card border border-ivory-300 bg-ivory-50 px-8 py-14 md:px-16 md:py-20">
+          <p className="text-xs uppercase tracking-[0.22em] text-ink-500">
+            A note on craft
+          </p>
+          <blockquote className="mt-6 font-serif text-2xl leading-snug tracking-editorial text-ink-800 md:text-[32px] md:leading-[1.25]">
+            “一段好的提示词，是写作者与模型之间的 <span className="italic text-clay-700">共同语言</span> —— 它精确、克制，却为意外留出位置。”
+          </blockquote>
+          <p className="mt-8 text-sm text-ink-500">
+            这个工作台只做一件事：让你的提示词值得被认真保存。
+          </p>
         </div>
-      </footer>
+      </section>
+
+      <SiteFooter />
     </main>
   );
 }

@@ -1,14 +1,22 @@
-import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
-import { notFound } from 'next/navigation';
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
+
+const TYPE_LABEL: Record<string, string> = {
+  text: "文字 · Text",
+  image: "图片 · Image",
+  video: "视频 · Video",
+};
 
 export default async function PromptDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const prompt = await prisma.prompt.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { category: true },
   });
 
@@ -16,57 +24,128 @@ export default async function PromptDetailPage({
     notFound();
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-8">
-          <Link href="/prompts" className="text-blue-600 hover:underline">
-            ← 返回列表
-          </Link>
-        </div>
+  const tags = Array.isArray(prompt.tags) ? (prompt.tags as string[]) : [];
+  const images = Array.isArray(prompt.images)
+    ? (prompt.images as string[])
+    : [];
 
-        <div className="bg-white rounded-lg shadow p-8">
-          <div className="flex items-start justify-between mb-6">
-            <h1 className="text-3xl font-bold">{prompt.title}</h1>
-            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm">
-              {prompt.category.name}
+  return (
+    <main className="min-h-screen bg-ivory-100">
+      <SiteHeader />
+
+      <article className="mx-auto max-w-3xl px-6 pb-24 pt-12 md:pt-16">
+        <Link
+          href="/prompts"
+          className="inline-flex items-center gap-2 text-sm text-ink-600 transition-colors hover:text-clay-700"
+        >
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+          返回提示词库
+        </Link>
+
+        {/* Title block */}
+        <header className="mt-10 border-b border-ivory-300 pb-10">
+          <div className="mb-6 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.2em] text-ink-500">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-clay-50 px-2.5 py-1 text-clay-700">
+              <span className="h-1 w-1 rounded-full bg-clay-600" />
+              {TYPE_LABEL[prompt.category.type] ?? prompt.category.name}
+            </span>
+            <span>
+              {new Date(prompt.createdAt).toLocaleDateString("zh-CN", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
             </span>
           </div>
-
+          <h1 className="font-serif text-4xl leading-tight tracking-editorial text-ink-900 md:text-5xl">
+            {prompt.title}
+          </h1>
           {prompt.description && (
-            <p className="text-gray-600 mb-6">{prompt.description}</p>
+            <p className="mt-6 text-lg leading-relaxed text-ink-700">
+              {prompt.description}
+            </p>
           )}
+        </header>
 
-          <div className="bg-gray-50 rounded-lg p-6 mb-6">
-            <h2 className="font-semibold mb-3">提示词内容：</h2>
-            <pre className="whitespace-pre-wrap text-sm">{prompt.content}</pre>
+        {/* Prompt content */}
+        <section className="mt-12">
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-xs uppercase tracking-[0.22em] text-ink-500">
+              The Prompt
+            </p>
+            <span className="text-xs text-ink-400">
+              {prompt.content.length} 字符
+            </span>
           </div>
-
-          {prompt.images.length > 0 && (
-            <div className="mb-6">
-              <h2 className="font-semibold mb-3">示例图片：</h2>
-              <div className="grid grid-cols-2 gap-4">
-                {prompt.images.map((url, i) => (
-                  <img key={i} src={url} alt="" className="rounded-lg" />
-                ))}
-              </div>
+          <div className="rounded-card border border-ivory-300 bg-ivory-50">
+            <div className="border-b border-ivory-300 px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-ink-400">
+              prompt.txt
             </div>
-          )}
+            <pre className="whitespace-pre-wrap break-words px-6 py-6 font-sans text-[15px] leading-relaxed text-ink-800">
+              {prompt.content}
+            </pre>
+          </div>
+        </section>
 
-          {prompt.tags.length > 0 && (
-            <div>
-              <h2 className="font-semibold mb-3">标签：</h2>
-              <div className="flex flex-wrap gap-2">
-                {prompt.tags.map((tag, i) => (
-                  <span key={i} className="bg-gray-100 px-3 py-1 rounded text-sm">
-                    {tag}
-                  </span>
-                ))}
-              </div>
+        {/* Images */}
+        {images.length > 0 && (
+          <section className="mt-14">
+            <p className="mb-5 text-xs uppercase tracking-[0.22em] text-ink-500">
+              Reference Images
+            </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {images.map((url, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={i}
+                  src={url}
+                  alt=""
+                  className="w-full rounded-card border border-ivory-300 bg-ivory-50 object-cover"
+                />
+              ))}
             </div>
-          )}
-        </div>
-      </div>
-    </div>
+          </section>
+        )}
+
+        {/* Tags */}
+        {tags.length > 0 && (
+          <section className="mt-14">
+            <p className="mb-4 text-xs uppercase tracking-[0.22em] text-ink-500">
+              Tags
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag, i) => (
+                <span
+                  key={i}
+                  className="rounded-full border border-ivory-300 bg-ivory-50 px-3 py-1 text-sm text-ink-700"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Editorial colophon */}
+        <div className="mt-20 divider-dotted" />
+        <p className="mt-8 text-center font-serif text-base italic tracking-editorial text-ink-500">
+          — fin —
+        </p>
+      </article>
+
+      <SiteFooter />
+    </main>
   );
 }
